@@ -43,22 +43,37 @@ class EmailRecord(Base):
     sender_address = Column(String(255), nullable=True)
     sender_name = Column(String(255), nullable=True)
     recipient_address = Column(String(255), nullable=True)
+    cc = Column(String(255), nullable=True)
+    reply_to = Column(String(255), nullable=True)
+    return_path = Column(String(255), nullable=True)
     email_date = Column(DateTime, nullable=True)
     
     spf_status = Column(String(50), default="UNKNOWN")
+    spf_details = Column(JSON, nullable=True)
     dkim_status = Column(String(50), default="UNKNOWN")
+    dkim_details = Column(JSON, nullable=True)
     dmarc_status = Column(String(50), default="UNKNOWN")
+    dmarc_details = Column(JSON, nullable=True)
+    
+    auth_caveat = Column(Text, default="Note: These are reported authentication results from headers, not independently verified cryptographic results.")
     
     raw_headers = Column(Text, nullable=True)
+    x_headers = Column(JSON, nullable=True)
     body_plain = Column(Text, nullable=True)
     body_html = Column(Text, nullable=True)
     
     sha256_hash = Column(String(64), unique=True, nullable=False, index=True)
     overall_threat_score = Column(Float, default=0.0)
-    threat_level = Column(String(50), default="CLEAN") # CLEAN, SUSPICIOUS, HIGH_RISK, CRITICAL
+    threat_level = Column(String(50), default="Low") # Low, Medium, High, Critical
+    contributing_factors = Column(JSON, nullable=True)
     
     originating_ip = Column(String(45), nullable=True)
     originating_country = Column(String(100), nullable=True)
+    earliest_external_source = Column(String(255), nullable=True)
+    
+    domains = Column(JSON, nullable=True)
+    ipv4_addresses = Column(JSON, nullable=True)
+    ipv6_addresses = Column(JSON, nullable=True)
     
     analyzed_at = Column(DateTime, default=datetime.utcnow)
 
@@ -75,6 +90,9 @@ class EmailHop(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid)
     email_id = Column(String(36), ForeignKey("emails.id"), nullable=False)
     hop_number = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, nullable=True)
+    receiving_server = Column(String(255), nullable=True)
+    sending_server = Column(String(255), nullable=True)
     ip_address = Column(String(45), nullable=False)
     reverse_dns = Column(String(255), nullable=True)
     country = Column(String(100), default="Unknown")
@@ -121,12 +139,10 @@ class AIAnalysis(Base):
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     email_id = Column(String(36), ForeignKey("emails.id"), nullable=False)
-    phishing_probability = Column(Float, default=0.0)
-    bec_probability = Column(Float, default=0.0)
-    scam_probability = Column(Float, default=0.0)
-    header_anomaly_score = Column(Float, default=0.0)
-    detected_keywords = Column(JSON, nullable=True)
-    key_phrases = Column(JSON, nullable=True)
+    classification = Column(String(100), default="Legitimate")
+    confidence = Column(Float, default=1.0)
+    signals = Column(JSON, nullable=True)
+    model_info = Column(String(255), nullable=True)
 
     email = relationship("EmailRecord", back_populates="ai_analysis")
 

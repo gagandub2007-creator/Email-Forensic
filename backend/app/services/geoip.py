@@ -21,6 +21,8 @@ class GeoIPService:
         """
         raw_hops = []
         ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
+        from_pattern = r'from\s+([^\s]+)'
+        by_pattern = r'by\s+([^\s]+)'
 
         # Headers are usually top-to-bottom (newest first). Reversing gives originating hop first.
         reversed_headers = list(reversed(received_headers))
@@ -32,6 +34,23 @@ class GeoIPService:
             if valid_ips:
                 target_ip = valid_ips[0]
                 geo_info = cls.lookup_ip_geolocation(target_ip)
+                
+                from_match = re.search(from_pattern, header_text, re.IGNORECASE)
+                sending_server = from_match.group(1) if from_match else None
+                
+                by_match = re.search(by_pattern, header_text, re.IGNORECASE)
+                receiving_server = by_match.group(1) if by_match else None
+                
+                timestamp = None
+                parts = header_text.split(';')
+                if len(parts) > 1:
+                    try:
+                        import email.utils
+                        parsed_tuple = email.utils.parsedate_to_datetime(parts[-1].strip())
+                        timestamp = parsed_tuple.replace(tzinfo=None)
+                    except Exception:
+                        pass
+                
                 raw_hops.append({
                     "hop_number": len(raw_hops) + 1,
                     "ip_address": target_ip,
@@ -44,7 +63,10 @@ class GeoIPService:
                     "asn": geo_info["asn"],
                     "delay_seconds": random.randint(1, 15) if len(raw_hops) > 0 else 0,
                     "is_vpn_proxy_tor": geo_info["is_tor"],
-                    "raw_received_header": header_text
+                    "raw_received_header": header_text,
+                    "timestamp": timestamp,
+                    "sending_server": sending_server,
+                    "receiving_server": receiving_server
                 })
 
         # Fallback if no public IPs found in headers
@@ -63,7 +85,10 @@ class GeoIPService:
                 "asn": geo_info["asn"],
                 "delay_seconds": 0,
                 "is_vpn_proxy_tor": True,
-                "raw_received_header": "Received: from mail.suspicious-relay.net ([185.220.101.5])"
+                "raw_received_header": "Received: from mail.suspicious-relay.net ([185.220.101.5])",
+                "timestamp": None,
+                "sending_server": "mail.suspicious-relay.net",
+                "receiving_server": None
             })
 
         return raw_hops

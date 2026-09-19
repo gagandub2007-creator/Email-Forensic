@@ -146,7 +146,7 @@ export const AnalyzeEmail: React.FC = () => {
   };
 
   // Form submission handler
-  const handleAnalyze = (forceError?: ErrorType) => {
+  const handleAnalyze = async (forceError?: ErrorType) => {
     clearErrors();
     setAnalysisComplete(false);
 
@@ -199,40 +199,70 @@ export const AnalyzeEmail: React.FC = () => {
       { id: 'infra', name: 'Building infrastructure intelligence', detail: 'Mapping relay network hops, ASN records, and IP geolocations...', status: 'pending' },
     ]);
 
-    // Stage 1 -> 2
-    setTimeout(() => {
-      setStages(prev => prev.map((s, idx) => 
-        idx === 0 ? { ...s, status: 'completed' } : idx === 1 ? { ...s, status: 'active' } : s
-      ));
-    }, 600);
+    try {
+      const formData = new FormData();
+      if (activeTab === 'upload' && selectedFile) {
+        formData.append('file', selectedFile);
+      } else if (activeTab === 'paste' && rawText) {
+        formData.append('raw_text', rawText);
+      }
 
-    // Stage 2 -> 3
-    setTimeout(() => {
-      setStages(prev => prev.map((s, idx) => 
-        idx === 1 ? { ...s, status: 'completed' } : idx === 2 ? { ...s, status: 'active' } : s
-      ));
-    }, 1200);
+      const response = await fetch('/api/v1/emails/analyze', {
+        method: 'POST',
+        body: formData,
+      });
 
-    // Stage 3 -> 4
-    setTimeout(() => {
-      setStages(prev => prev.map((s, idx) => 
-        idx === 2 ? { ...s, status: 'completed' } : idx === 3 ? { ...s, status: 'active' } : s
-      ));
-    }, 1800);
+      if (!response.ok) {
+        let errMessage = 'Analysis failed due to server error.';
+        try {
+            const errorData = await response.json();
+            errMessage = errorData.detail || errMessage;
+        } catch(e) {}
+        throw new Error(errMessage);
+      }
 
-    // Stage 4 -> 5
-    setTimeout(() => {
-      setStages(prev => prev.map((s, idx) => 
-        idx === 3 ? { ...s, status: 'completed' } : idx === 4 ? { ...s, status: 'active' } : s
-      ));
-    }, 2400);
+      const data = await response.json();
 
-    // Stage 5 completed
-    setTimeout(() => {
-      setStages(prev => prev.map(s => ({ ...s, status: 'completed' })));
-      setIsAnalyzing(false);
-      setAnalysisComplete(true);
-    }, 3000);
+      // Stage 1 -> 2
+      setTimeout(() => {
+        setStages(prev => prev.map((s, idx) => 
+          idx === 0 ? { ...s, status: 'completed' } : idx === 1 ? { ...s, status: 'active' } : s
+        ));
+      }, 300);
+
+      // Stage 2 -> 3
+      setTimeout(() => {
+        setStages(prev => prev.map((s, idx) => 
+          idx === 1 ? { ...s, status: 'completed' } : idx === 2 ? { ...s, status: 'active' } : s
+        ));
+      }, 600);
+
+      // Stage 3 -> 4
+      setTimeout(() => {
+        setStages(prev => prev.map((s, idx) => 
+          idx === 2 ? { ...s, status: 'completed' } : idx === 3 ? { ...s, status: 'active' } : s
+        ));
+      }, 900);
+
+      // Stage 4 -> 5
+      setTimeout(() => {
+        setStages(prev => prev.map((s, idx) => 
+          idx === 3 ? { ...s, status: 'completed' } : idx === 4 ? { ...s, status: 'active' } : s
+        ));
+      }, 1200);
+
+      // Stage 5 completed
+      setTimeout(() => {
+        setStages(prev => prev.map(s => ({ ...s, status: 'completed' })));
+        setIsAnalyzing(false);
+        setAnalysisComplete(true);
+      }, 1500);
+
+    } catch (err: any) {
+      console.error(err);
+      triggerError('backend_failure');
+      setErrorMessage(err.message || 'An error occurred during analysis.');
+    }
   };
 
   // Helper to test error states directly

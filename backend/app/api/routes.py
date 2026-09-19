@@ -12,6 +12,7 @@ from app.api.schemas import (
 from app.services.parser import EmailParserEngine
 from app.services.geoip import GeoIPService
 from app.services.threat_ai import AIThreatEngine
+from app.services.risk_scoring import RiskScoringEngine
 from app.services.blockchain import BlockchainService
 from app.services.report import ForensicReportGenerator
 
@@ -105,13 +106,20 @@ def create_case(case_in: CaseCreate, db: Session = Depends(get_db)):
 # 3. Email Ingestion & Analysis Engine
 @router.post("/emails/analyze", response_model=EmailRecordOut)
 async def analyze_email(
-    file: UploadFile = File(...),
+    file: UploadFile = File(None),
+    raw_text: str = Form(None),
     case_id: str = Form(None),
     db: Session = Depends(get_db)
 ):
-    raw_bytes = await file.read()
+    if file:
+        raw_bytes = await file.read()
+    elif raw_text:
+        raw_bytes = raw_text.encode('utf-8')
+    else:
+        raise HTTPException(status_code=400, detail="Must provide either file or raw_text")
+        
     if not raw_bytes:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+        raise HTTPException(status_code=400, detail="Input is empty")
 
     # 1. Parse Email File
     parsed = EmailParserEngine.parse_eml_bytes(raw_bytes)
@@ -144,6 +152,9 @@ async def analyze_email(
     # 3. AI Threat & NLP Analysis
     ai_threat_res = AIThreatEngine.analyze_email_threat(parsed, hops_data)
 
+    # 4. Deterministic Risk Scoring
+    risk_res = RiskScoringEngine.calculate_risk(parsed, hops_data, ai_threat_res)
+
     # Create Email DB Record
     email_rec = EmailRecord(
         id=str(uuid.uuid4()),
@@ -153,18 +164,31 @@ async def analyze_email(
         sender_address=parsed["sender_address"],
         sender_name=parsed["sender_name"],
         recipient_address=parsed["recipient_address"],
+        cc=parsed.get("cc"),
+        reply_to=parsed.get("reply_to"),
+        return_path=parsed.get("return_path"),
         email_date=parsed["email_date"],
         spf_status=parsed["spf_status"],
+        spf_details=parsed.get("spf_details"),
         dkim_status=parsed["dkim_status"],
+        dkim_details=parsed.get("dkim_details"),
         dmarc_status=parsed["dmarc_status"],
+        dmarc_details=parsed.get("dmarc_details"),
+        auth_caveat=parsed.get("auth_caveat"),
         raw_headers=parsed["raw_headers"],
+        x_headers=parsed.get("x_headers"),
         body_plain=parsed["body_plain"],
         body_html=parsed["body_html"],
         sha256_hash=sha256_hash,
-        overall_threat_score=ai_threat_res["overall_threat_score"],
-        threat_level=ai_threat_res["threat_level"],
+        overall_threat_score=risk_res["risk_score"],
+        threat_level=risk_res["severity"],
+        contributing_factors=risk_res["contributing_factors"],
         originating_ip=originating_ip,
         originating_country=originating_country,
+        earliest_external_source=parsed.get("earliest_external_source"),
+        domains=parsed.get("domains"),
+        ipv4_addresses=parsed.get("ipv4_addresses"),
+        ipv6_addresses=parsed.get("ipv6_addresses"),
         analyzed_at=datetime.utcnow()
     )
     db.add(email_rec)
@@ -186,7 +210,10 @@ async def analyze_email(
             asn=hop["asn"],
             delay_seconds=hop["delay_seconds"],
             is_vpn_proxy_tor=hop["is_vpn_proxy_tor"],
-            raw_received_header=hop.get("raw_received_header")
+            raw_received_header=hop.get("raw_received_header"),
+            timestamp=hop.get("timestamp"),
+            receiving_server=hop.get("receiving_server"),
+            sending_server=hop.get("sending_server")
         )
         db.add(h_obj)
 
@@ -221,12 +248,10 @@ async def analyze_email(
     ai_obj = AIAnalysis(
         id=str(uuid.uuid4()),
         email_id=email_rec.id,
-        phishing_probability=ai_threat_res["phishing_probability"],
-        bec_probability=ai_threat_res["bec_probability"],
-        scam_probability=ai_threat_res["scam_probability"],
-        header_anomaly_score=ai_threat_res["header_anomaly_score"],
-        detected_keywords=ai_threat_res["detected_keywords"],
-        key_phrases=ai_threat_res["key_phrases"]
+        classification=ai_threat_res["classification"],
+        confidence=ai_threat_res["confidence"],
+        signals=ai_threat_res["signals"],
+        model_info=ai_threat_res["model_info"]
     )
     db.add(ai_obj)
 

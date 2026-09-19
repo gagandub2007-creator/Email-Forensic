@@ -39,6 +39,9 @@ class CaseOut(BaseModel):
 # Email Analysis Schemas
 class HopOut(BaseModel):
     hop_number: int
+    timestamp: Optional[datetime] = None
+    receiving_server: Optional[str] = None
+    sending_server: Optional[str] = None
     ip_address: str
     reverse_dns: Optional[str] = None
     country: str
@@ -49,6 +52,7 @@ class HopOut(BaseModel):
     asn: str
     delay_seconds: int
     is_vpn_proxy_tor: bool
+    raw_header_reference: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -77,12 +81,10 @@ class URLOut(BaseModel):
         from_attributes = True
 
 class AIAnalysisOut(BaseModel):
-    phishing_probability: float
-    bec_probability: float
-    scam_probability: float
-    header_anomaly_score: float
-    detected_keywords: Optional[List[str]] = []
-    key_phrases: Optional[List[str]] = []
+    classification: str
+    confidence: float
+    signals: Optional[List[str]] = []
+    model_info: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -98,6 +100,23 @@ class BlockchainOut(BaseModel):
     class Config:
         from_attributes = True
 
+class SPFDetailsOut(BaseModel):
+    status: str
+    domain: Optional[str] = None
+    explanation: Optional[str] = None
+
+class DKIMDetailsOut(BaseModel):
+    status: str
+    domain: Optional[str] = None
+    selector: Optional[str] = None
+    explanation: Optional[str] = None
+
+class DMARCDetailsOut(BaseModel):
+    status: str
+    policy: Optional[str] = None
+    aligned_domain: Optional[str] = None
+    explanation: Optional[str] = None
+
 class EmailRecordOut(BaseModel):
     id: str
     case_id: Optional[str] = None
@@ -106,15 +125,28 @@ class EmailRecordOut(BaseModel):
     sender_address: Optional[str] = None
     sender_name: Optional[str] = None
     recipient_address: Optional[str] = None
+    cc: Optional[str] = None
+    reply_to: Optional[str] = None
+    return_path: Optional[str] = None
     email_date: Optional[datetime] = None
     spf_status: str
+    spf_details: Optional[SPFDetailsOut] = None
     dkim_status: str
+    dkim_details: Optional[DKIMDetailsOut] = None
     dmarc_status: str
+    dmarc_details: Optional[DMARCDetailsOut] = None
+    auth_caveat: str
     sha256_hash: str
     overall_threat_score: float
     threat_level: str
+    contributing_factors: Optional[List[str]] = []
     originating_ip: Optional[str] = None
     originating_country: Optional[str] = None
+    earliest_external_source: Optional[str] = None
+    x_headers: Optional[Any] = None
+    domains: Optional[List[str]] = []
+    ipv4_addresses: Optional[List[str]] = []
+    ipv6_addresses: Optional[List[str]] = []
     analyzed_at: datetime
     hops: List[HopOut] = []
     attachments: List[AttachmentOut] = []
