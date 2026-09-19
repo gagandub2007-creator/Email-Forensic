@@ -53,6 +53,7 @@ class HopOut(BaseModel):
     delay_seconds: int
     is_vpn_proxy_tor: bool
     raw_header_reference: Optional[str] = None
+    infrastructure_intel: Optional[Any] = None
 
     class Config:
         from_attributes = True
@@ -76,6 +77,9 @@ class URLOut(BaseModel):
     is_suspicious: bool
     is_typosquatted: bool
     reputation_score: float
+    url_details: Optional[Any] = None
+    domain_intel: Optional[Any] = None
+    lookalike_intel: Optional[Any] = None
 
     class Config:
         from_attributes = True
@@ -147,6 +151,7 @@ class EmailRecordOut(BaseModel):
     domains: Optional[List[str]] = []
     ipv4_addresses: Optional[List[str]] = []
     ipv6_addresses: Optional[List[str]] = []
+    ip_intelligence: Optional[Any] = None
     analyzed_at: datetime
     hops: List[HopOut] = []
     attachments: List[AttachmentOut] = []

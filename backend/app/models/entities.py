@@ -74,6 +74,7 @@ class EmailRecord(Base):
     domains = Column(JSON, nullable=True)
     ipv4_addresses = Column(JSON, nullable=True)
     ipv6_addresses = Column(JSON, nullable=True)
+    ip_intelligence = Column(JSON, nullable=True)
     
     analyzed_at = Column(DateTime, default=datetime.utcnow)
 
@@ -104,6 +105,7 @@ class EmailHop(Base):
     delay_seconds = Column(Integer, default=0)
     is_vpn_proxy_tor = Column(Boolean, default=False)
     raw_received_header = Column(Text, nullable=True)
+    infrastructure_intel = Column(JSON, nullable=True)
 
     email = relationship("EmailRecord", back_populates="hops")
 
@@ -131,6 +133,10 @@ class ExtractedURL(Base):
     is_suspicious = Column(Boolean, default=False)
     is_typosquatted = Column(Boolean, default=False)
     reputation_score = Column(Float, default=100.0) # 100 safe, 0 malicious
+    
+    url_details = Column(JSON, nullable=True)
+    domain_intel = Column(JSON, nullable=True)
+    lookalike_intel = Column(JSON, nullable=True)
 
     email = relationship("EmailRecord", back_populates="urls")
 

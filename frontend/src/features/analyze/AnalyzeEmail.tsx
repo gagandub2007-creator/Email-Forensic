@@ -256,6 +256,9 @@ export const AnalyzeEmail: React.FC = () => {
         setStages(prev => prev.map(s => ({ ...s, status: 'completed' })));
         setIsAnalyzing(false);
         setAnalysisComplete(true);
+        if (data && data.id) {
+          navigate(`/investigations/${data.id}`);
+        }
       }, 1500);
 
     } catch (err: any) {

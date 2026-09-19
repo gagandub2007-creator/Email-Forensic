@@ -13,6 +13,8 @@ from app.services.parser import EmailParserEngine
 from app.services.geoip import GeoIPService
 from app.services.threat_ai import AIThreatEngine
 from app.services.risk_scoring import RiskScoringEngine
+from app.services.url_intel import URLIntelEngine
+from app.services.ip_intel import IPIntelEngine
 from app.services.blockchain import BlockchainService
 from app.services.report import ForensicReportGenerator
 
@@ -149,6 +151,25 @@ async def analyze_email(
     originating_ip = hops_data[0]["ip_address"] if hops_data else "185.220.101.5"
     originating_country = hops_data[0]["country"] if hops_data else "Unknown"
 
+    # 2.5 IP Intelligence
+    ip_engine = IPIntelEngine()
+    
+    # Collect all IPs
+    all_ips = []
+    if parsed.get("ipv4_addresses"):
+        all_ips.extend(parsed["ipv4_addresses"])
+    if parsed.get("ipv6_addresses"):
+        all_ips.extend(parsed["ipv6_addresses"])
+    for h in hops_data:
+        if h.get("ip_address"):
+            all_ips.append(h["ip_address"])
+            
+    ip_intel_results = ip_engine.analyze_ips(all_ips)
+    
+    # Inject into hops
+    for h in hops_data:
+        h["infrastructure_intel"] = ip_intel_results.get(h.get("ip_address"))
+
     # 3. AI Threat & NLP Analysis
     ai_threat_res = AIThreatEngine.analyze_email_threat(parsed, hops_data)
 
@@ -189,6 +210,7 @@ async def analyze_email(
         domains=parsed.get("domains"),
         ipv4_addresses=parsed.get("ipv4_addresses"),
         ipv6_addresses=parsed.get("ipv6_addresses"),
+        ip_intelligence=ip_intel_results,
         analyzed_at=datetime.utcnow()
     )
     db.add(email_rec)
@@ -211,6 +233,7 @@ async def analyze_email(
             delay_seconds=hop["delay_seconds"],
             is_vpn_proxy_tor=hop["is_vpn_proxy_tor"],
             raw_received_header=hop.get("raw_received_header"),
+            infrastructure_intel=hop.get("infrastructure_intel"),
             timestamp=hop.get("timestamp"),
             receiving_server=hop.get("receiving_server"),
             sending_server=hop.get("sending_server")
@@ -232,7 +255,10 @@ async def analyze_email(
         db.add(att_obj)
 
     # Save Extracted URLs
-    for u in ai_threat_res["analyzed_urls"]:
+    url_engine = URLIntelEngine()
+    enriched_urls = url_engine.analyze_urls(parsed.get("urls", []))
+    
+    for u in enriched_urls:
         u_obj = ExtractedURL(
             id=str(uuid.uuid4()),
             email_id=email_rec.id,
@@ -240,7 +266,10 @@ async def analyze_email(
             domain=u["domain"],
             is_suspicious=u["is_suspicious"],
             is_typosquatted=u["is_typosquatted"],
-            reputation_score=u["reputation_score"]
+            reputation_score=u["reputation_score"],
+            url_details=u["url_details"],
+            domain_intel=u["domain_intel"],
+            lookalike_intel=u["lookalike_intel"]
         )
         db.add(u_obj)
 

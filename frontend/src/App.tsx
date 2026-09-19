@@ -5,8 +5,9 @@ import { Topbar } from './components/common/Topbar';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { AnalyzeEmail } from './features/analyze/AnalyzeEmail';
 
+import { InvestigationWorkspace } from './features/investigation/InvestigationWorkspace';
+
 // Stub components for other routes
-const Investigations = () => <div className="p-6 text-slate-500">Investigations Placeholder</div>;
 const Cases = () => <div className="p-6 text-slate-500">Cases Placeholder</div>;
 const Reports = () => <div className="p-6 text-slate-500">Reports Placeholder</div>;
 
@@ -29,7 +30,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/analyze" element={<AnalyzeEmail />} />
-          <Route path="/investigations" element={<Investigations />} />
+          <Route path="/investigations" element={<Navigate to="/" replace />} />
+          <Route path="/investigations/:id" element={<InvestigationWorkspace />} />
           <Route path="/cases" element={<Cases />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="*" element={<Navigate to="/" replace />} />
