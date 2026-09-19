@@ -3,6 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Sidebar } from './components/common/Sidebar';
 import { Topbar } from './components/common/Topbar';
 import { Dashboard } from './features/dashboard/Dashboard';
+import { AnalyzeEmail } from './features/analyze/AnalyzeEmail';
+
+// Stub components for other routes
+const Investigations = () => <div className="p-6 text-slate-500">Investigations Placeholder</div>;
+const Cases = () => <div className="p-6 text-slate-500">Cases Placeholder</div>;
+const Reports = () => <div className="p-6 text-slate-500">Reports Placeholder</div>;
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="flex h-screen bg-slate-50 overflow-hidden">
@@ -15,12 +21,6 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     </div>
   </div>
 );
-
-// Stub components for other routes
-const AnalyzeEmail = () => <div className="p-6 text-slate-500">Analyze Email Placeholder</div>;
-const Investigations = () => <div className="p-6 text-slate-500">Investigations Placeholder</div>;
-const Cases = () => <div className="p-6 text-slate-500">Cases Placeholder</div>;
-const Reports = () => <div className="p-6 text-slate-500">Reports Placeholder</div>;
 
 function App() {
   return (

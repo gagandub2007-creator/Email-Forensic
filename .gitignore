@@ -132,6 +132,10 @@ backend/venv/
 *.sqlite
 *.sqlite3
 
+# Node / Frontend
+node_modules/
+dist/
+
 # IDEs
 .idea/
 .vscode/
