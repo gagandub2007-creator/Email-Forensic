@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.models.database import engine, Base
+import app.models.entities  # noqa: F401
 from app.api.routes import router as api_router
 
 # Auto-create SQLite database tables on startup

@@ -6,6 +6,7 @@ import { Dashboard } from './features/dashboard/Dashboard';
 import { AnalyzeEmail } from './features/analyze/AnalyzeEmail';
 
 import { InvestigationWorkspace } from './features/investigation/InvestigationWorkspace';
+import { EvidencePreservation } from './features/evidence/EvidencePreservation';
 
 // Stub components for other routes
 const Cases = () => <div className="p-6 text-slate-500">Cases Placeholder</div>;
@@ -33,6 +34,7 @@ function App() {
           <Route path="/investigations" element={<Navigate to="/" replace />} />
           <Route path="/investigations/:id" element={<InvestigationWorkspace />} />
           <Route path="/cases" element={<Cases />} />
+          <Route path="/evidence" element={<EvidencePreservation />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

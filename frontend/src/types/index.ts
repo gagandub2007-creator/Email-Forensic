@@ -55,6 +55,64 @@ export interface BlockchainLog {
   anchored_at: string;
 }
 
+export interface CustodyEvent {
+  id: string;
+  evidence_id: string;
+  timestamp: string;
+  user: string;
+  action: string;
+}
+
+export interface EvidenceLedgerEntry {
+  id: string;
+  evidence_id: string;
+  ledger_tx_id: string;
+  evidence_hash: string;
+  case_reference?: string;
+  block_number: number;
+  prev_block_hash?: string;
+  merkle_root?: string;
+  contract_address?: string;
+  registered_at: string;
+  verification_status: string;
+  ledger_status: string;
+}
+
+export interface LedgerVerifyResult {
+  evidence_id: string;
+  verified: boolean;
+  status: string;
+  recorded_hash?: string;
+  submitted_hash: string;
+  block_number?: number;
+  timestamp?: string;
+  contract_address?: string;
+}
+
+export interface EvidenceRecord {
+  id: string;
+  email_id: string;
+  case_id?: string;
+  investigation_id?: string;
+  sha256_hash: string;
+  filename: string;
+  file_size_bytes: number;
+  created_at: string;
+  collected_by: string;
+  integrity_status: string;
+  custody_events: CustodyEvent[];
+  ledger_entry?: EvidenceLedgerEntry;
+}
+
+export interface EvidenceVerifyResult {
+  evidence_id: string;
+  status: string;
+  stored_hash: string;
+  recalculated_hash: string;
+  verified_at: string;
+  match: boolean;
+}
+
 export interface EmailRecord {
   id: string;
   case_id?: string;
@@ -92,4 +150,6 @@ export interface EmailRecord {
   urls: URLIntel[];
   ai_analysis?: AIAnalysis;
   blockchain_log?: BlockchainLog;
+  evidence_record?: EvidenceRecord;
 }
+

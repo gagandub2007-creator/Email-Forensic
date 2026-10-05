@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     VIRUSTOTAL_API_KEY: str = os.getenv("VIRUSTOTAL_API_KEY", "")
     ABUSEIPDB_API_KEY: str = os.getenv("ABUSEIPDB_API_KEY", "")
     
+    # Neo4j Graph Database Configuration
+    NEO4J_URI: str = os.getenv("NEO4J_URI", "")
+    NEO4J_USER: str = os.getenv("NEO4J_USER", "neo4j")
+    NEO4J_PASSWORD: str = os.getenv("NEO4J_PASSWORD", "")
+    
     class Config:
         case_sensitive = True
 

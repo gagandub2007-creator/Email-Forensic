@@ -158,6 +158,73 @@ class EmailRecordOut(BaseModel):
     urls: List[URLOut] = []
     ai_analysis: Optional[AIAnalysisOut] = None
     blockchain_log: Optional[BlockchainOut] = None
+    evidence_record: Optional["EvidenceRecordOut"] = None
 
     class Config:
         from_attributes = True
+
+# Evidence Preservation Schemas (Step 16)
+class CustodyEventOut(BaseModel):
+    id: str
+    evidence_id: str
+    timestamp: datetime
+    user: str
+    action: str
+
+    class Config:
+        from_attributes = True
+
+class CustodyEventCreate(BaseModel):
+    user: str
+    action: str
+class EvidenceLedgerEntryOut(BaseModel):
+    id: str
+    evidence_id: str
+    ledger_tx_id: str
+    evidence_hash: str
+    case_reference: Optional[str] = None
+    block_number: int
+    prev_block_hash: Optional[str] = None
+    merkle_root: Optional[str] = None
+    contract_address: Optional[str] = None
+    registered_at: datetime
+    verification_status: str
+    ledger_status: str
+
+    class Config:
+        from_attributes = True
+
+class LedgerVerifyOut(BaseModel):
+    evidence_id: str
+    verified: bool
+    status: str
+    recorded_hash: Optional[str] = None
+    submitted_hash: str
+    block_number: Optional[int] = None
+    timestamp: Optional[str] = None
+    contract_address: Optional[str] = None
+
+class EvidenceRecordOut(BaseModel):
+    id: str
+    email_id: str
+    case_id: Optional[str] = None
+    investigation_id: Optional[str] = None
+    sha256_hash: str
+    filename: str
+    file_size_bytes: int
+    created_at: datetime
+    collected_by: str
+    integrity_status: str
+    custody_events: List[CustodyEventOut] = []
+    ledger_entry: Optional[EvidenceLedgerEntryOut] = None
+
+    class Config:
+        from_attributes = True
+
+class EvidenceVerifyOut(BaseModel):
+    evidence_id: str
+    status: str
+    stored_hash: str
+    recalculated_hash: str
+    verified_at: str
+    match: bool

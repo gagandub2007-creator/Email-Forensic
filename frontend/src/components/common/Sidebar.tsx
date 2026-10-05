@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Mail, Search, Folder, FileText, Settings, UserCircle, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Mail, Search, Folder, FileText, Settings, UserCircle, ShieldCheck, Fingerprint } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const navItems = [
@@ -9,6 +9,7 @@ export const Sidebar: React.FC = () => {
     { name: 'Investigations', path: '/investigations', icon: Search, badge: '12' },
     { name: 'Cases', path: '/cases', icon: Folder },
     { name: 'Reports', path: '/reports', icon: FileText },
+    { name: 'Evidence', path: '/evidence', icon: Fingerprint },
   ];
 
   return (
