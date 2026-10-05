@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Shield, ShieldCheck, ShieldAlert, Hash, Clock, User,
+  Shield, ShieldCheck, Hash, Clock, User,
   FileText, HardDrive, CheckCircle2, XCircle, RefreshCw,
   Link2, Eye, Download, Activity, Fingerprint, Lock, Blocks
 } from 'lucide-react';

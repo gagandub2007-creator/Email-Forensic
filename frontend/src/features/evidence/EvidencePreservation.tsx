@@ -244,7 +244,7 @@ export const EvidencePreservation: React.FC = () => {
                     <p className="text-sm text-slate-400 text-center py-6">No custody events recorded.</p>
                   ) : (
                     <ol className="relative border-l-2 border-slate-200 ml-3 space-y-6">
-                      {timeline.map((evt, idx) => {
+                      {timeline.map((evt) => {
                         const style = ACTION_STYLE[evt.action] || ACTION_STYLE['Evidence collected'];
                         return (
                           <li key={evt.id} className="ml-6">

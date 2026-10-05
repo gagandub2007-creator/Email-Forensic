@@ -16,7 +16,7 @@ import {
   ChevronRight,
   Info
 } from 'lucide-react';
-import { DEMO_RAW_EMAIL } from './mockDemoEmail';
+import { DEMO_PRESETS, DEMO_RAW_EMAIL } from './mockDemoEmail';
 
 type InputMode = 'upload' | 'paste';
 
@@ -55,6 +55,16 @@ export const AnalyzeEmail: React.FC = () => {
   ]);
 
   // Demo file helper
+  const handleSelectPreset = (presetId: string) => {
+    const preset = DEMO_PRESETS.find(p => p.id === presetId);
+    if (preset) {
+      setActiveTab('paste');
+      setRawText(preset.raw);
+      setSelectedFile(null);
+      clearErrors();
+    }
+  };
+
   const handleUseDemoEmail = () => {
     setActiveTab('paste');
     setRawText(DEMO_RAW_EMAIL);
@@ -322,6 +332,43 @@ export const AnalyzeEmail: React.FC = () => {
             <Sparkles className="w-3.5 h-3.5 text-primary" />
             Use Demo Email
           </button>
+        </div>
+      </div>
+
+      {/* Demo Dataset Quick Selection Bar */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-slate-200 space-y-3 shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-indigo-400" />
+            <span className="text-xs font-bold text-slate-100 uppercase tracking-wider">
+              SIH 2026 Evaluation Demo Dataset
+            </span>
+            <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
+              DEMO DATA
+            </span>
+          </div>
+          <span className="text-[11px] text-slate-400 italic">
+            Select a forensic scenario preset to test instant detection & trace
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
+          {DEMO_PRESETS.map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => handleSelectPreset(preset.id)}
+              className="p-2.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-indigo-500/50 rounded-lg text-left transition group flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 block truncate">
+                  {preset.title}
+                </span>
+                <span className={`inline-block mt-1 text-[10px] font-mono px-1.5 py-0.5 rounded border ${preset.badgeColor}`}>
+                  {preset.threat}
+                </span>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 

@@ -30,6 +30,7 @@ from app.services.evidence_preservation import (
     compute_sha256, verify_integrity, build_evidence_record, build_custody_event,
 )
 from app.services.evidence_ledger import get_ledger
+from app.services.demo_dataset import DemoDatasetManager, DEMO_DISCLAIMER
 
 router = APIRouter()
 
@@ -731,3 +732,50 @@ def list_audit_logs(
         }
         for l in logs
     ]
+
+
+# ---------------------------------------------------------------
+#  9. Forensic Demonstration Dataset Endpoints (Step 20)
+# ---------------------------------------------------------------
+
+@router.post("/demo/seed")
+def seed_demo_data(db: Session = Depends(get_db)):
+    """Seed or reset the 5 realistic forensic demo emails."""
+    seeded = DemoDatasetManager.seed_demo_dataset(db)
+    return {
+        "status": "success",
+        "message": "Demo dataset populated with 5 forensic threat scenarios",
+        "disclaimer": DEMO_DISCLAIMER,
+        "count": len(seeded),
+        "demo_email_ids": [e.id for e in seeded],
+    }
+
+
+@router.get("/demo/dataset")
+def get_demo_dataset(db: Session = Depends(get_db)):
+    """Retrieve the demonstration dataset for quick investigation loading."""
+    DemoDatasetManager.seed_demo_dataset(db)
+    demo_records = db.query(EmailRecord).filter(
+        EmailRecord.id.like("demo-email-%")
+    ).all()
+    
+    return {
+        "disclaimer": DEMO_DISCLAIMER,
+        "is_demo_data": True,
+        "count": len(demo_records),
+        "items": [
+            {
+                "id": r.id,
+                "subject": r.subject,
+                "sender_address": r.sender_address,
+                "recipient_address": r.recipient_address,
+                "threat_level": r.threat_level,
+                "overall_threat_score": r.overall_threat_score,
+                "ai_classification": r.ai_analysis.classification if r.ai_analysis else "N/A",
+                "sha256_hash": r.sha256_hash,
+                "originating_country": r.originating_country,
+                "analyzed_at": r.analyzed_at.strftime('%Y-%m-%d %H:%M:%S UTC') if r.analyzed_at else "N/A",
+            }
+            for r in demo_records
+        ]
+    }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  FileText, Download, ShieldCheck, AlertTriangle, Eye, CheckCircle2, 
-  Lock, Key, Scale, Layers, Server, Hash, FileSpreadsheet, X 
+  FileText, Download, AlertTriangle, Eye, CheckCircle2, 
+  Scale, X 
 } from 'lucide-react';
 
 interface ReportPreviewModalProps {
